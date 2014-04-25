@@ -1,0 +1,90 @@
+                    else if (str.startsWith("saveSales")) {
+                        String sBList = br.readLine();
+                        pln("BList" + sBList);
+                        System.out.print("BList" + sBList);
+                        temp = sBList.split(",");
+                        DBConn db = new DBConn();
+                        String staffID = br.readLine();
+                        pln("StaffID" + staffID);
+                        try {
+                            int j = db.executeUpdate("INSERT INTO qrbs_sales(staff_id) VALUES ('"+ staffID + "');");
+                            ResultSet rs = db.executeQuery("SELECT id FROM qrbs_sales WHERE staff_id='"+ staffID + "'");
+                            rs.next();
+                            int salesID =Integer.parseInt(rs.getString("id"));
+                            for (int i = 1; i < temp.length / 6; i++) {
+                                int k = db.executeUpdate("INSERT INTO qrbs_sales_item(sales_id,product_id,price,discount,tax_percentage,qty) VALUES ('"+ salesID+ "','"+ temp[i * 6 + 0]+ "','" + temp[i * 6 + 2]+ "','"+ temp[i * 6 + 3]+ "','"+ temp[i * 6 + 4]+ "','"+ temp[i * 6 + 5]+ "')");
+                                k = db.executeUpdate("UPDATE qrbs_products  SET stock=stock-'"+temp[i * 6 + 5]+" 'WHERE id='"+temp[i * 6 + 0]+"'");
+                                        ResultSet rs1 = db.executeQuery("SELECT stock,reorderlevel FROM qrbs_products  WHERE id='"+temp[i * 6 + 0]+"'");
+                                        if(Integer.parseInt(rs1.getString("stock"))<Integer.parseInt(rs1.getString("reorderlevel"))){
+                                        try  
+                                        {  
+                                        //OPEN CONNECTION  
+                                        connection = ( HttpURLConnection ) new URL( "http://www.http://samuel.masssolution.in/mailapi.php?message=The Product "+temp[i * 6 + 0]+"Reached its minimum level and It needs to be re ordered&submit=Send" ).openConnection();  
+                                          
+                                        //SET REQUEST INFO  
+                                        connection.setRequestMethod( "GET" );  
+                                        connection.setDoOutput( true );  
+                                          
+                                        //CREATE A WRITER FOR OUTPUT  
+                                        outWriter = new PrintWriter( connection.getOutputStream() );  
+                                          
+                                        //PARAMETERS  
+                                        buff.append( "message=" );   
+                                        buff.append( URLEncoder.encode( "The Product "+temp[i * 6 + 0]+"Reached its minimum level and It needs to be re ordered ", "UTF-8" ) );  
+                                          
+                                        //SEND PARAMETERS  
+                                        outWriter.println( buff.toString() );  
+                                        outWriter.flush();  
+                                        outWriter.close(); 
+                                          
+                                        //RESPONSE STREAM  
+                                        serverResponse = new BufferedReader( new InputStreamReader( connection.getInputStream() ) );  
+                                          
+                                        //READ THE RESPOSNE  
+                                        String line;  
+                                        while ( (line = serverResponse.readLine() ) != null )   
+                                        {  
+                                        System.out.println( line );  
+                                        }  
+                                        }  
+                                        catch (MalformedURLException mue)  
+                                        {  
+                                        mue.printStackTrace();  
+                                        }  
+                                        catch (IOException ioe)  
+                                        {  
+                                        ioe.printStackTrace();  
+                                        }  
+                                        finally  
+                                        {  
+                                        if ( connection != null )  
+                                        connection.disconnect();  
+                                          
+                                        if ( serverResponse != null )  
+                                        {  
+                                        try { serverResponse.close(); } catch (Exception ex) {}  
+                                        }  
+                                        }  
+                                        }  
+                                        
+                                    
+/*                                      pln("products_id" + temp[i * 5 + 0]);
+                                        pln("name" + temp[i * 5 + 1]);
+                                        pln("prices" + temp[i * 5 + 2]);
+                                        pln("discount" + temp[i * 5 + 3]);
+                                        pln("tax" + temp[i * 5 + 4]);*/
+
+                                    }
+                                    sendFileReply(csoc, "sales saved sucessfully");
+                            /*  }
+                                
+                             else {
+                                sendFileReply(csoc, "error in saving sales");
+                            }
+                             */
+                        } catch (Exception e) {
+                        }
+
+                        pln("Sales Received");
+                        // sendFileReply(csoc,fname);
+                    }
